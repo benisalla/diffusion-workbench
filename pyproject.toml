@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "diffusion-workbench"
+version = "0.1.0"
+description = "Diffusion and flow models for images in plain PyTorch (DDPM, DDIM, v/x0-prediction, score SDE, flow matching, EDM, classifier-free guidance, consistency distillation, latent diffusion, DiT and U-Net backbones) sharing one training loop, compared on MNIST with FID-style metrics and NFE curves."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+keywords = [
+  "diffusion-models", "ddpm", "ddim", "flow-matching", "rectified-flow", "score-based-generative-models",
+  "score-sde", "edm", "classifier-free-guidance", "consistency-models", "latent-diffusion", "dit",
+  "unet", "pytorch", "image-generation", "generative-models", "deep-learning", "educational",
+]
+dependencies = [
+  "numpy>=1.24",
+  "torch>=2.4",
+  "torchvision>=0.19",
+  "matplotlib>=3.8",
+]
+
+[project.scripts]
+diffusion-data = "diffusion.data:main"
+diffusion-train = "diffusion.train:main"
+diffusion-sample = "diffusion.sample:main"
+diffusion-eval = "diffusion.evaluate:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.9", "nbformat>=5.10"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/diffusion"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+extend-exclude = ["notebooks/*.ipynb", "legacy/*"]
+
+# CPU-only PyTorch wheels for `uv` users; plain `pip install` still resolves from PyPI.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+torchvision = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
