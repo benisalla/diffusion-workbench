@@ -43,6 +43,36 @@ flowchart LR
 
 The equations, shapes and the reasons behind each choice are in [docs/architecture.md](docs/architecture.md).
 
+## Before and after training
+
+**The problem:** a network that has not learned anything cannot turn noise into images. Every
+backbone here starts with a zero output layer, so the untrained model predicts 0. What that does
+depends on the method: x0-prediction returns a flat grey image (the "clean image" it predicts is all
+zeros), and flow matching leaves the noise untouched (zero velocity). **The fix is the training
+objective:** after 500 steps (about half an MNIST epoch on a CPU, 0.21 M parameters), the *same starting
+noise* goes through the *same sampler* and comes out as digits. With classifier-free guidance (bottom
+row), the requested labels 0, 1, 2, 3, ... are followed.
+
+![untrained vs trained, same noise](assets/before_after.png)
+
+**The reverse process, step by step.** Below, the same 16 noise images are pushed through four
+samplers, each frame at the same fraction of its steps. DDIM, flow matching and EDM are deterministic,
+and they end on nearly the same digits: they learned almost the same noise-to-image map. EDM's Heun
+steps on the Karras schedule resolve the shapes earliest. DDPM's ancestral sampler injects fresh noise
+at every step, so the same start ends on different digits, and it stays grainy until the last steps.
+
+![reverse process: DDPM, DDIM, flow matching, EDM](assets/reverse_process.gif)
+
+**Learning, checkpoint by checkpoint.** Below is one fixed set of 36 noise images, sampled with Euler at
+20 steps from flow-matching snapshots saved every 25 training steps. Noisy strokes appear at step 75,
+clean strokes by step 150, and from step 300 on each noise image keeps its digit shape, which only gets
+smoother.
+
+<p align="center"><img src="assets/training_progress.gif" alt="samples improving during training" width="420"></p>
+
+`python scripts/make_gifs.py` regenerates all three from the saved checkpoints
+(`scripts/compare_all.py` runs, plus a `--save-every 25` flow-matching run).
+
 > **No pretrained weights are published.** Everything trains in minutes on the built-in data;
 > bigger runs are for the Kaggle/Colab notebook.
 
@@ -189,7 +219,8 @@ src/diffusion/
   viz.py         grids, trajectories, loss and NFE curves
 docs/            architecture, training, data, evaluation, testing
 examples/        five scripts, 01 ... 05
-scripts/         compare_all.py (the README runs), results_table.py (tables + figures)
+scripts/         compare_all.py (the README runs), results_table.py (tables + figures),
+                 make_gifs.py (before/after figure, reverse-process and training GIFs)
 tests/           45 tests
 notebooks/       build_notebook.py -> train_colab_kaggle.ipynb
 assets/          figures from the runs below

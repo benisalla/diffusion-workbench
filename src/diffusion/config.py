@@ -55,6 +55,7 @@ class TrainConfig:
     grad_clip: float = 1.0
     ema_decay: float = 0.999
     log_every: int = 50
+    save_every: int = 0             # >0: also save the EMA weights every N steps (ckpt_<step>.pt)
     seed: int = 0
     threads: int = 1
     device: str = "auto"            # auto | cpu | cuda

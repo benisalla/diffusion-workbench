@@ -95,6 +95,10 @@ def train(cfg: RunConfig, data: tuple | None = None, verbose: bool = True) -> di
             window = []
             if verbose:
                 print(f"step {step:6d}  loss {history['loss'][-1]:.4f}  {elapsed / 60:5.1f} min", flush=True)
+        if tc.save_every and step % tc.save_every == 0:  # snapshots for "samples across training" figures
+            snap = Path(tc.output_dir) / f"ckpt_{step:06d}.pt"
+            snap.parent.mkdir(parents=True, exist_ok=True)
+            torch.save({"config": cfg.to_dict(), "ema": ema.state_dict(), "step": step}, snap)
         if tc.max_minutes and time.time() - t0 > tc.max_minutes * 60:
             if verbose:
                 print(f"time limit reached at step {step}")
@@ -141,6 +145,7 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--max-minutes", type=float, default=0.0)
     g.add_argument("--ema-decay", type=float, default=0.999)
     g.add_argument("--log-every", type=int, default=50)
+    g.add_argument("--save-every", type=int, default=0, help="also save EMA snapshots every N steps")
     g.add_argument("--seed", type=int, default=0)
     g.add_argument("--threads", type=int, default=1)
     g.add_argument("--device", default="auto")
@@ -159,7 +164,7 @@ def config_from_args(a) -> RunConfig:
     m.dit_dim, m.dit_depth, m.dit_heads, m.patch_size = a.dit_dim, a.dit_depth, a.dit_heads, a.patch_size
     t = cfg.train
     for k in ("dataset", "data_dir", "n_train", "cond", "p_uncond", "batch_size", "lr", "max_steps", "max_minutes",
-              "ema_decay", "log_every", "seed", "threads", "device", "output_dir"):
+              "ema_decay", "log_every", "save_every", "seed", "threads", "device", "output_dir"):
         setattr(t, k, getattr(a, k))
     return cfg
 

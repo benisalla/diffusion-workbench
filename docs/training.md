@@ -49,6 +49,7 @@ diffusion-train --method edm --cond --output-dir runs/edm-cond           # class
 | `--cond`, `--p-uncond` | off, 0.1 | class-conditional training with label dropout |
 | `--batch-size`, `--lr`, `--max-steps`, `--max-minutes` | 64, 1e-3, 2000, 0 | budget; `--max-minutes` stops early on a clock |
 | `--ema-decay` | 0.999 | |
+| `--save-every` | 0 | also save EMA snapshots `ckpt_<step>.pt` every N steps (used by `scripts/make_gifs.py`) |
 | `--threads` | 1 | CPU threads (`torch.set_num_threads`) |
 | `--output-dir` | `checkpoints/run` | |
 
